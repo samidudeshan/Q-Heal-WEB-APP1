@@ -44,6 +44,21 @@
             height: 100%;
             background: linear-gradient(90deg, #00f2fe, #b927fc);
         }
+
+        * { box-sizing: border-box; }
+
+    /* 2. Body: හැම පේජ් එකේම පසුබිම එකම වගේ තියාගන්න */
+    body { margin: 0; background-color: #060a13; color: white; font-family: sans-serif; }
+
+    /* 3. Container: මේක තමයි හැම පේජ් එකේම content එක මැදට කරන wrapper එක */
+    .container {
+        width: 90%; 
+        max-width: 1000px;
+        margin: 0 auto; /* සයිට් එක screen එකේ මැදට වෙන්න */
+    }
+
+    /* 4. Responsive Media Query: මේක පේජ් එකේ හැඩය PC/Mobile වලදී මාරු කරනවා */
+    @media (max-width: 768px) {
     </style>
 </head>
 <body>
