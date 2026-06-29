@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q-Heal | Quantum Frequency & Mental Coherence Engine</title>
+    <style>
+        :root {
+            --bg-dark: #060a13;
+            --bg-card: #0d1527;
+            --primary: #1e40af;
+            --accent: #00f2fe;
+            --text-main: #f7fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* --- Interactive Background Canvas Animation --- */
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: radial-gradient(circle at center, #0c1938 0%, #060a13 100%);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header Style */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1.5px;
+        }
+
+        .badge {
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            color: var(--accent);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- SCREEN 1: HOME PAGE --- */
+        .hero {
+            text-align: center;
+            padding: 80px 0 50px 0;
+        }
+
+        .hero h1 {
+            font-size: 46px;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            font-weight: 800;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, #3b82f6, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 18px;
+            max-width: 650px;
+            margin: 0 auto 40px auto;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #2563eb, var(--accent));
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 242, 254, 0.45);
+        }
+
+        /* --- SCREEN 2: EMOJI DIAGNOSTIC QUIZ --- */
+        .quiz-card {
+            max-width: 600px;
+            margin: 40px auto;
+            background: rgba(13, 21, 39, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .quiz-progress {
+            height: 4px;
+            background: #1e293b;
+            border-radius: 2px;
+            margin-bottom: 35px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 20%;
+            background: var(--accent);
+            transition: width 0.4s ease;
+        }
+
+        .q-title {
+            font-size: 20px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        /* Emoji Matrix Selection */
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 35px;
+        }
+
+        .emoji-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .emoji-btn:hover {
+            background: rgba(0, 242, 254, 0.1);
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        .emoji-btn.selected {
+            background: rgba(37, 99, 235, 0.3);
+            border-color: var(--accent);
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
+        }
+
+        .emoji-btn span {
+            font-size: 28px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .emoji-btn p {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* --- SCREEN 3: HEALING HUB --- */
+        .hub-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        @media (max-width: 850px) {
+            .hub-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Mode Selector Tabs */
+        .mode-selector {
+            display: flex;
+            background: #111827;
+            padding: 6px;
+            border-radius: 30px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .mode-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .mode-tab.active {
+            background: linear-gradient(135deg, #2563eb, var(--accent));
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Display Wrapper */
+        .display-panel {
+            background: rgba(13, 21, 39, 0.8);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Dynamic Breathing Graphic */
+        .breath-ring {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.4) 0%, transparent 70%);
+            border: 3px solid var(--accent);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+            transition: transform 4s ease-in-out;
+        }
+
+        .breath-ring.expanding {
+            transform: scale(1.6);
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.6) 0%, transparent 70%);
+        }
+
+        .breath-ring.shrinking {
+            transform: scale(0.9);
+        }
+
+        .hub-controls {
+            background: rgba(13, 21, 39, 0.85);
+            padding: 35px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .timer {
+            font-size: 54px;
+            font-weight: 800;
+            font-family: monospace;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .action-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 15px;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .action-btn.paused {
+            background: var(--danger);
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bgCanvas"></canvas>
+
+    <div class="container">
+        <header>
+            <div class="logo">Q-HEAL</div>
+            <div class="badge">Somatic Core V2.5 Active</div>
+        </header>
+
+        <div id="screenHome" class="screen active">
+            <div class="hero">
+                <h1>Quantum Frequency & <br><span>Somatic Coherence Workspace</span></h1>
+                <p>An innovative algorithmic framework optimizing student mental endurance via localized acoustic sound geometries and synchronous tactile pacing filters.</p>
+                <div style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap;">
+                    <button class="btn" onclick="navigateTo('screenQuiz')">Launch Interactive Diagnostic</button>
+                    <a class="btn" href="index.html" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Home</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="screenQuiz" class="screen">
+            <div class="quiz-card">
+                <div class="quiz-progress">
+                    <div class="progress-fill" id="quizProgressFill"></div>
+                </div>
+                
+                <div id="quizContent">
+                    </div>
+            </div>
+        </div>
+
+        <div id="screenHub" class="screen">
+            <div class="mode-selector">
+                <div class="mode-tab active" id="tabVibe" onclick="switchTherapyMode('vibe')">Acoustic & Vibration Waves</div>
+                <div class="mode-tab" id="tabBreath" onclick="switchTherapyMode('breath')">Somatic Breathing Guide</div>
+            </div>
+
+            <div class="hub-grid">
+                <div class="display-panel">
+                    <canvas id="waveCanvas" style="width: 100%; height: 220px;"></canvas>
+                    
+                    <div class="breath-ring" id="breathRing">Inhale</div>
+                </div>
+
+                <div class="hub-controls">
+                    <div style="font-size: 12px; text-transform: uppercase; color: var(--accent); font-weight:700; margin-bottom:5px; letter-spacing:1px;">Session Envelope</div>
+                    <div class="timer" id="timerDisplay">15:00</div>
+                    
+                    <p style="color: var(--text-muted); font-size: 14px; line-height: 1.5; margin-bottom: 30px;" id="matrixStatus">
+                        Mapping individual telemetry vectors to wave synthesis modules...
+                    </p>
+
+                    <button class="action-btn" id="sessionCtrlBtn" onclick="toggleSession()">Start Therapy Session</button>
+                    <button class="btn" style="background: rgba(255,255,255,0.05); box-shadow: none; width: 100%; margin-top: 12px; border: 1px solid rgba(255,255,255,0.1);" onclick="navigateTo('screenHome')">Exit Session Node</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. INTERACTIVE BACKGROUND PARTICLE CODE ANIMATION LOOP ---
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particles = [];
+
+        function resizeBg() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeBg);
+        resizeBg();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * bgCanvas.width;
+                this.y = Math.random() * bgCanvas.height;
+                this.size = Math.random() * 2.5 + 0.5;
+                this.speedX = Math.random() * 0.4 - 0.2;
+                this.speedY = Math.random() * 0.4 - 0.2;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > bgCanvas.width) this.x = 0;
+                if (this.x < 0) this.x = bgCanvas.width;
+                if (this.y > bgCanvas.height) this.y = 0;
+                if (this.y < 0) this.y = bgCanvas.height;
+            }
+            draw() {
+                bgCtx.fillStyle = `rgba(0, 242, 254, ${this.opacity})`;
+                bgCtx.beginPath();
+                bgCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                bgCtx.fill();
+            }
+        }
+
+        for (let i = 0; i < 65; i++) { particles.push(new Particle()); }
+
+        function animateBackground() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            let gradient = bgCtx.createRadialGradient(bgCanvas.width/2, bgCanvas.height/2, 10, bgCanvas.width/2, bgCanvas.height/2, bgCanvas.width);
+            gradient.addColorStop(0, '#0a142c');
+            gradient.addColorStop(1, '#050811');
+            bgCtx.fillStyle = gradient;
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateBackground);
+        }
+        animateBackground();
+
+
+        // --- 2. 5-STEP EMOJI DIAGNOSTIC DATA STRUCTURES ---
+        const diagnosticQuestions = [
+            { text: "How heavy is your academic burnout or mental exhaustion right now? (දැන් දැනෙන මානසික විඩාව)", metrics: "fatigue" },
+            { text: "Rate the ambient/environmental noise around you. (වටපිටාවේ ඇති ශබ්ද බාධා ප්‍රමාණය)", metrics: "noise" },
+            { text: "How tense or physically restless is your body? (ශරීරයට දැනෙන ගැස්ම/නොසන්සුන්කම)", metrics: "anxiety" },
+            { text: "Are you struggling to maintain active attention on study tasks? (පාඩම් වැඩ වලට අවධානය යොමු කිරීමේ අපහසුතාවය)", metrics: "focus" },
+            { text: "Rate your overall situational exam-related stress level. (විභාග පීඩනය නිසා ඇති වී තිබෙන ආතතිය)", metrics: "stress" }
+        ];
+
+        let currentQuestionIdx = 0;
+        let diagnosticOutputs = { fatigue: 3, noise: 3, anxiety: 3, focus: 3, stress: 3 };
+
+        function loadQuestion() {
+            if (currentQuestionIdx >= diagnosticQuestions.length) {
+                processTherapyMatrix();
+                return;
+            }
+
+            const progressPercent = ((currentQuestionIdx + 1) / diagnosticQuestions.length) * 100;
+            document.getElementById('quizProgressFill').style.width = `${progressPercent}%`;
+
+            const currentQ = diagnosticQuestions[currentQuestionIdx];
+            let html = `
+                <div class="q-title">Question ${currentQuestionIdx + 1} of 5: <br>${currentQ.text}</div>
+                <div class="emoji-grid">
+                    <div class="emoji-btn" onclick="submitAnswer('${currentQ.metrics}', 2)"><span>😊</span><p>Excellent</p></div>
+                    <div class="emoji-btn" onclick="submitAnswer('${currentQ.metrics}', 4)"><span>🙂</span><p>Mild</p></div>
+                    <div class="emoji-btn" onclick="submitAnswer('${currentQ.metrics}', 6)"><span>😐</span><p>Moderate</p></div>
+                    <div class="emoji-btn" onclick="submitAnswer('${currentQ.metrics}', 8)"><span>🙁</span><p>High</p></div>
+                    <div class="emoji-btn" onclick="submitAnswer('${currentQ.metrics}', 10)"><span>😫</span><p>Severe</p></div>
+                </div>
+            `;
+            document.getElementById('quizContent').innerHTML = html;
+        }
+
+        function submitAnswer(metricType, evaluationWeight) {
+            diagnosticOutputs[metricType] = evaluationWeight;
+            currentQuestionIdx++;
+            loadQuestion();
+        }
+
+
+        // --- 3. CORE MANAGEMENT ROUTER NODE DIRECTIONS ---
+        function navigateTo(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            if (screenId === 'screenQuiz') {
+                currentQuestionIdx = 0;
+                loadQuestion();
+            }
+            if (screenId === 'screenHub') {
+                initCanvasWaveform();
+                initBreathingEngine(true);
+            } else {
+                haltActiveSession();
+                initBreathingEngine(false);
+            }
+        }
+
+        function processTherapyMatrix() {
+            let configurationTraceText = `Matrix Calculations Resolved. Pure 528Hz Quantum Base Engine Online. `;
+            if(diagnosticOutputs.noise > 5) configurationTraceText += `+ Anti-Chaos Pink Noise Layer deployed to stabilize audio focus variables. `;
+            if(diagnosticOutputs.fatigue > 5 || diagnosticOutputs.stress > 5) configurationTraceText += `+ Grounding low-frequency binaural pacing synchronized.`;
+            
+            document.getElementById('matrixStatus').innerText = configurationTraceText;
+            navigateTo('screenHub');
+        }
+
+
+        // --- 4. DUAL THERAPY SELECTION INTERFACE CONTROLS ---
+        let selectedTherapyMode = 'vibe'; 
+
+        function switchTherapyMode(mode) {
+            selectedTherapyMode = mode;
+            document.getElementById('tabVibe').classList.toggle('active', mode === 'vibe');
+            document.getElementById('tabBreath').classList.toggle('active', mode === 'breath');
+
+            const waveCanvas = document.getElementById('waveCanvas');
+            const breathRing = document.getElementById('breathRing');
+
+            if (mode === 'vibe') {
+                waveCanvas.style.display = 'block';
+                breathRing.style.display = 'none';
+            } else {
+                waveCanvas.style.display = 'none';
+                breathRing.style.display = 'flex';
+            }
+        }
+
+
+        // --- 5. UPDATED ACOUSTIC FREQUENCY & TACTILE VIBRATION ENGINE ---
+        let audioContextInstance = null;
+        let internalOscNode = null;
+        let internalGainNode = null;
+        let pinkNoiseNode = null;
+        let isSessionExecuting = false;
+        let globalTimerId = null;
+        let hapticLoopId = null;
+        let timeRemaining = 900; 
+
+        function toggleSession() {
+            const buttonElement = document.getElementById('sessionCtrlBtn');
+            if (!isSessionExecuting) {
+                initiateAudioHardware();
+                buttonElement.innerText = "Pause Active Session";
+                buttonElement.className = "action-btn paused";
+                isSessionExecuting = true;
+                startCountdownClock();
+                startHapticVibrationEngine(); // Deploys the physical wave pulses
+            } else {
+                haltActiveSession();
+            }
+        }
+
+        function initiateAudioHardware() {
+            if (!audioContextInstance) {
+                audioContextInstance = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            internalGainNode = audioContextInstance.createGain();
+            internalGainNode.gain.setValueAtTime(0.4, audioContextInstance.currentTime);
+
+            // 1. Synthesize Pure 528Hz Acoustic Core
+            internalOscNode = audioContextInstance.createOscillator();
+            internalOscNode.type = 'sine';
+            internalOscNode.frequency.setValueAtTime(528, audioContextInstance.currentTime);
+            internalOscNode.connect(internalGainNode);
+
+            // 2. Real-time Pink Noise Masking (If environmental noise parameter is active)
+            if (diagnosticOutputs.noise > 5) {
+                pinkNoiseNode = createPinkNoiseBuffer(audioContextInstance);
+                if (pinkNoiseNode) {
+                    let noiseGain = audioContextInstance.createGain();
+                    noiseGain.gain.setValueAtTime(0.12, audioContextInstance.currentTime);
+                    pinkNoiseNode.connect(noiseGain);
+                    noiseGain.connect(internalGainNode);
+                }
+            }
+            
+            internalGainNode.connect(audioContextInstance.destination);
+            internalOscNode.start();
+        }
+
+        // Deep Multi-sensory Pulsing Grounding Sequencer (Acoustic Vibration Channel)
+        function startHapticVibrationEngine() {
+            clearInterval(hapticLoopId);
+            if (!isSessionExecuting || selectedTherapyMode !== 'vibe') return;
+
+            function vibratePulse() {
+                if (navigator.vibrate && selectedTherapyMode === 'vibe' && isSessionExecuting) {
+                    // 528Hz ට සමපාත වන පරිදි ශරීරය සන්සුන් කරන සියුම් තරංග රටාවක් (Tactile Pulse Pattern)
+                    navigator.vibrate([250, 150, 250, 200]); 
+                }
+            }
+            vibratePulse();
+            hapticLoopId = setInterval(vibratePulse, 1200); // Rhythmic looping every 1.2s
+        }
+
+        function haltActiveSession() {
+            const buttonElement = document.getElementById('sessionCtrlBtn');
+            clearInterval(hapticLoopId);
+            if (internalOscNode) {
+                try { internalOscNode.stop(); } catch(e){}
+                internalOscNode.disconnect();
+                internalOscNode = null;
+            }
+            if (pinkNoiseNode) {
+                try { pinkNoiseNode.stop(); } catch(e){}
+                pinkNoiseNode.disconnect();
+                pinkNoiseNode = null;
+            }
+            clearInterval(globalTimerId);
+            isSessionExecuting = false;
+            if(buttonElement) {
+                buttonElement.innerText = "Start Therapy Session";
+                buttonElement.className = "action-btn";
+            }
+            if(navigator.vibrate) navigator.vibrate(0);
+        }
+
+        // Mathematical Filter Buffer for Pure Pink Noise Generation
+        function createPinkNoiseBuffer(ctx) {
+            let bufferSize = 2 * ctx.sampleRate,
+                noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate),
+                output = noiseBuffer.getChannelData(0);
+            let b0, b1, b2, b3, b4, b5, b6;
+            b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
+            for (let i = 0; i < bufferSize; i++) {
+                let white = Math.random() * 2 - 1;
+                b0 = 0.99886 * b0 + white * 0.0555179;
+                b1 = 0.99332 * b1 + white * 0.0750759;
+                b2 = 0.96900 * b2 + white * 0.1538520;
+                b3 = 0.86650 * b3 + white * 0.3104856;
+                b4 = 0.55000 * b4 + white * 0.5329522;
+                b5 = -0.7616 * b5 - white * 0.0168980;
+                output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+                output[i] *= 0.11;
+                b6 = white * 0.115926;
+            }
+            let pinkSource = ctx.createBufferSource();
+            pinkSource.buffer = noiseBuffer;
+            pinkSource.loop = true;
+            pinkSource.start(0);
+            return pinkSource;
+        }
+
+        // Somatic Breathing Guide Automation Loop Engine
+        let breathIntervalId = null;
+        function initBreathingEngine(start) {
+            const ring = document.getElementById('breathRing');
+            clearInterval(breathIntervalId);
+            if (!start) return;
+
+            function cycle() {
+                if (selectedTherapyMode === 'breath') {
+                    ring.innerText = "Inhale (හුස්ම ගන්න)";
+                    ring.className = "breath-ring expanding";
+                    if(isSessionExecuting && navigator.vibrate) navigator.vibrate(200);
+                }
+
+                setTimeout(() => {
+                    if (selectedTherapyMode === 'breath') {
+                        ring.innerText = "Exhale (හුස්ම පිට කරන්න)";
+                        ring.className = "breath-ring shrinking";
+                        if(isSessionExecuting && navigator.vibrate) navigator.vibrate(100);
+                    }
+                }, 4000); 
+            }
+            cycle();
+            breathIntervalId = setInterval(cycle, 8000);
+        }
+
+        function startCountdownClock() {
+            clearInterval(globalTimerId);
+            globalTimerId = setInterval(() => {
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                    let mins = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+                    let secs = (timeRemaining % 60).toString().padStart(2, '0');
+                    document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+                } else {
+                    haltActiveSession();
+                }
+            }, 1000);
+        }
+
+        // Live Aesthetic Vector Canvas Layout Trailing Render Node
+        const waveCanvas = document.getElementById('waveCanvas');
+        const waveCtx = waveCanvas.getContext('2d');
+        let wavePhase = 0;
+
+        function initCanvasWaveform() {
+            function draw() {
+                waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+                waveCtx.beginPath();
+                waveCtx.lineWidth = 3;
+                waveCtx.strokeStyle = isSessionExecuting ? '#00f2fe' : '#2563eb';
+
+                let targetAmplitude = isSessionExecuting ? 20 : 6;
+                let targetFrequency = isSessionExecuting ? 0.03 : 0.015;
+
+                for (let x = 0; x < waveCanvas.width; x++) {
+                    let y = waveCanvas.height / 2 + Math.sin(x * targetFrequency + wavePhase) * targetAmplitude;
+                    if (x === 0) waveCtx.moveTo(x, y);
+                    else waveCtx.lineTo(x, y);
+                }
+                waveCtx.stroke();
+                wavePhase += isSessionExecuting ? 0.09 : 0.02;
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+    </script>
+</body>
+</html>

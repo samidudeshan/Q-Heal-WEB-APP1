@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum-Health | Healing Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .therapy-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 2rem;
+        }
+        .btn-therapy {
+            border: none; padding: 1rem 2rem; color: white;
+            font-weight: 700; border-radius: 12px; cursor: pointer;
+            transition: all 0.3s ease; font-size: 1rem;
+        }
+        .btn-sound {
+            background: linear-gradient(45deg, #1f8032, #2ea043);
+            box-shadow: 0 0 15px rgba(46, 160, 67, 0.3);
+        }
+        .btn-sound:hover:not(:disabled) {
+            transform: translateY(-3px); box-shadow: 0 0 25px rgba(46, 160, 67, 0.6);
+        }
+        .btn-vibrate {
+            background: linear-gradient(45deg, #6f3ec2, #8957e5);
+            box-shadow: 0 0 15px rgba(137, 87, 229, 0.3);
+        }
+        .btn-vibrate:hover:not(:disabled) {
+            transform: translateY(-3px); box-shadow: 0 0 25px rgba(137, 87, 229, 0.6);
+        }
+        .btn-therapy:disabled {
+            background: #222; color: #555; cursor: not-allowed;
+            box-shadow: none; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .status-badge {
+            padding: 0.5rem 1rem; border-radius: 20px;
+            font-size: 0.85rem; font-weight: 600; display: inline-block; margin-top: 0.5rem;
+        }
+        .status-offline { background: rgba(255, 51, 51, 0.1); color: #ff3333; border: 1px solid rgba(255, 51, 51, 0.2); }
+        .status-online { background: rgba(46, 160, 67, 0.1); color: #2ea043; border: 1px solid rgba(46, 160, 67, 0.2); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">QUANTUM HEALTH</div>
+            <ul class="nav-links">
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li class="active"><a href="healing-hub.html">Healing Hub</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header>
+                <h1>Quantum Healing Hub</h1>
+                <p>Pair your Q-Heal Hand Belt and deploy custom somatic & acoustic integration frequencies.</p>
+            </header>
+
+            <div class="grid-container" style="grid-template-columns: 1fr;">
+                
+                <!-- Bluetooth Pair Card -->
+                <div class="card" style="text-align: center; max-width: 800px; margin: 0 auto; width: 100%;">
+                    <h3>Universal Device Synchronization</h3>
+                    <p style="color: rgba(255,255,255,0.6); margin-bottom: 1.5rem;">
+                        Connect your Q-Heal Hand Belt (ESP32-U) via Web Bluetooth to enable physical wave transmission.
+                    </p>
+                    <button id="btnConnect" class="resonance-btn" style="width: 160px; height: 160px; margin: 1rem auto; font-size: 1rem;">
+                        🔍 SCAN & PAIR
+                    </button>
+                    <div>
+                        <span id="statusText" class="status-badge status-offline">Band Status: Disconnected</span>
+                    </div>
+                    <p id="connectedDeviceName" style="font-size: 14px; color: #00f2fe; margin-top: 8px; font-weight: 600;"></p>
+                </div>
+
+                <!-- Quantum Wave Generation Card -->
+                <div class="card" style="max-width: 800px; margin: 0 auto; width: 100%; text-align: center;">
+                    <h3>Somatic & Acoustic Quantum Integration</h3>
+                    <p style="color: rgba(255,255,255,0.5); margin-bottom: 1.5rem;">
+                        Targeting Ion Channels: <span id="targetFreqText" class="glow-text-cyan" style="font-weight:600;">Calculating Frequency...</span>
+                    </p>
+
+                    <div style="height: 160px; width: 100%; margin-bottom: 1.5rem;">
+                        <canvas id="resonanceChart"></canvas>
+                    </div>
+
+                    <div class="therapy-controls">
+                        <button id="btnSound" class="btn-therapy btn-sound" disabled>🎵 Play Sound Healing</button>
+                        <button id="btnVibrate" class="btn-therapy btn-vibrate" disabled>📳 Start Somatic Vibration</button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        gsap.from(".card", { opacity: 0, scale: 0.95, duration: 0.8, stagger: 0.15, ease: "power3.out" });
+
+        const targetFreqText = document.getElementById('targetFreqText');
+        const btnSound = document.getElementById('btnSound');
+        const btnVibrate = document.getElementById('btnVibrate');
+        const btnConnect = document.getElementById('btnConnect');
+        const statusText = document.getElementById('statusText');
+        const connectedDeviceName = document.getElementById('connectedDeviceName');
+
+        // --- GLOBAL HARDWARE VARIABLES ---
+        const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+        const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+
+        let bluetoothDevice = null;
+        let txCharacteristic = null;
+        let audioCtx = null;
+        let oscillator = null;
+        let isEmittingWave = false;
+        let waveInterval;
+        let count = 0;
+
+        let selectedFrequency = 528; // Default frequency
+
+        // --- 📥 EXTRACTION LOGIC: Dashboard එකෙන් එවපු Real Data කියවීම ---
+        const savedBarrierHeight = localStorage.getItem('calculatedBarrierHeight');
+
+        if (savedBarrierHeight) {
+            let barrier = parseFloat(savedBarrierHeight);
+            
+            // Dashboard එකේ සාමාන්‍ය අගය අනුව Frequency තේරීම
+            if (barrier > 2.8) {
+                selectedFrequency = 432; // Stress එක වැඩි නම් සන්සුන් කරන සංඛ්‍යාතය
+                targetFreqText.innerHTML = `High Stress Barrier Detected (<span class='glow-text-purple'>${barrier} eV</span>) | Targeting with ${selectedFrequency}Hz`;
+            } else {
+                selectedFrequency = 528; // සාමාන්‍ය මට්ටමට සෛල අලුත්වැඩියා කරන සංඛ්‍යාතය
+                targetFreqText.innerHTML = `Normal Stress Barrier Detected (<span class='glow-text-cyan'>${barrier} eV</span>) | Targeting with ${selectedFrequency}Hz`;
+            }
+        } else {
+            targetFreqText.innerText = "No scan data found. Running at default 528Hz.";
+        }
+
+        // බටන් එකේ නම අදාළ සංඛ්‍යාතය අනුව සකස් කිරීම
+        btnSound.innerText = `🎵 Play Sound Healing (${selectedFrequency}Hz)`;
+
+
+        // --- 📊 CHART SETUP ---
+        const ctxRes = document.getElementById('resonanceChart').getContext('2d');
+        let resData = Array(60).fill(0);
+        const resChart = new Chart(ctxRes, {
+            type: 'line',
+            data: {
+                labels: Array(60).fill(''),
+                datasets: [{ data: resData, borderColor: 'rgba(255, 255, 255, 0.05)', borderWidth: 2, fill: false, tension: 0.4, pointRadius: 0 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { x: { display: false }, y: { display: false, min: -30, max: 30 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+
+        // --- 🔍 1. BLUETOOTH PAIRING LOGIC (ESP32-U) ---
+        btnConnect.addEventListener('click', async () => {
+            if (!bluetoothDevice) {
+                try {
+                    statusText.innerText = "Opening Browser Scan Window...";
+                    statusText.className = "status-badge status-offline";
+                    connectedDeviceName.innerText = "";
+
+                    bluetoothDevice = await navigator.bluetooth.requestDevice({
+                        acceptAllDevices: true,
+                        optionalServices: [SERVICE_UUID]
+                    });
+
+                    statusText.innerText = "Connecting to selected device...";
+                    const server = await bluetoothDevice.gatt.connect();
+                    
+                    statusText.innerText = "Linking Quantum Services...";
+                    const service = await server.getPrimaryService(SERVICE_UUID);
+                    txCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+
+                    statusText.innerText = "Band Status: Connected ✓";
+                    statusText.className = "status-badge status-online";
+                    connectedDeviceName.innerText = "Connected to: " + (bluetoothDevice.name || "Unknown Device");
+                    btnConnect.innerText = "🔌 DISCONNECT";
+                    
+                    localStorage.setItem("premium_status", "ACTIVE_VIA_HARDWARE");
+
+                    // බ්ලූටූත් කනෙක්ට් වූ පසු පද්ධතිය සක්‍රීය කිරීම
+                    btnSound.disabled = false;
+                    btnVibrate.disabled = false;
+
+                } catch (error) {
+                    console.error("Bluetooth Connection Error: ", error);
+                    alert("Bluetooth Error: " + error.message);
+                    statusText.innerText = "Connection Cancelled / Failed.";
+                    statusText.className = "status-badge status-offline";
+                    connectedDeviceName.innerText = "";
+                    bluetoothDevice = null;
+                }
+            } else {
+                // Disconnect කිරීමේ ලොජික් එක
+                if (bluetoothDevice.gatt.connected) {
+                    bluetoothDevice.gatt.disconnect();
+                }
+                statusText.innerText = "Band Status: Disconnected";
+                statusText.className = "status-badge status-offline";
+                connectedDeviceName.innerText = "";
+                btnConnect.innerText = "🔍 SCAN & PAIR";
+                btnSound.disabled = true;
+                btnVibrate.disabled = true;
+                bluetoothDevice = null;
+                stopAudioAndWave();
+            }
+        });
+
+
+        // --- 🎵 2. ACOUSTIC SOUND THERAPY LOGIC (Toggle System) ---
+        btnSound.addEventListener('click', () => {
+            // සවුන්ඩ් එක දැනටමත් වැඩ නම් එය ක්‍රියා විරහිත කිරීම
+            if (oscillator) {
+                stopAudioAndWave();
+                btnSound.innerText = `🎵 Play Sound Healing (${selectedFrequency}Hz)`;
+                statusText.innerText = "Sound Therapy Stopped.";
+                return;
+            }
+
+            // සවුන්ඩ් එක සහ වෙිව් ඇනිමේෂන් එක පටන් ගැනීම
+            statusText.innerText = `Acoustic Therapy Active: Playing ${selectedFrequency}Hz...`;
+            btnSound.innerText = "🛑 Stop Sound Healing";
+
+            // Audio Context එකක් සාදා සයින් වේව් එකක් ජෙනරේට් කිරීම
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = "sine";
+            oscillator.frequency.setValueAtTime(selectedFrequency, audioCtx.currentTime); // Dashboard එකෙන් ආපු Frequency එක දේ
+            gainNode.gain.setValueAtTime(0.07, audioCtx.currentTime); // සන්සුන් සවුන්ඩ් මට්ටමක්
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+
+            // ග්‍රාෆ් එකේ රිදම් එක පටන් ගැනීම
+            startWaveAnimation();
+        });
+
+
+        // --- 📳 3. SOMATIC VIBRATION HARDWARE LOGIC ---
+        btnVibrate.addEventListener('click', async () => {
+            statusText.innerText = "Somatic Therapy Active: Sending Pulse to Band...";
+
+            if (txCharacteristic) {
+                try {
+                    const encoder = new TextEncoder();
+                    // ESP32 එකට 'P' විධානය බ්ලූටූත් හරහා යැවීම
+                    await txCharacteristic.writeValue(encoder.encode("P")); 
+                    statusText.innerText = "Pulse Command 'P' Sent Successfully! ✓";
+                } catch (err) {
+                    alert("Failed to send command to Band: " + err.message);
+                    statusText.innerText = "Vibration Transmission Failed.";
+                }
+            } else {
+                alert("Somatic Band is not connected. Please connect via Bluetooth first.");
+                statusText.innerText = "Band Disconnected.";
+            }
+        });
+
+
+        // --- 🌊 GRAPH ANIMATION CONTROLS ---
+        function startWaveAnimation() {
+            if (isEmittingWave) return;
+            resChart.data.datasets[0].borderColor = '#2ea043';
+            resChart.data.datasets[0].borderWidth = 3;
+            
+            waveInterval = setInterval(() => {
+                count += 0.3;
+                resData.shift();
+                resData.push(Math.sin(count) * 20 + (Math.random() * 2));
+                resChart.update('none');
+            }, 40);
+            isEmittingWave = true;
+        }
+
+        function stopAudioAndWave() {
+            // Audio ක්ලෝස් කිරීම
+            if (oscillator) {
+                oscillator.stop();
+                audioCtx.close();
+                oscillator = null;
+                audioCtx = null;
+            }
+            // ඇනිමේෂන් නවැත්වීම
+            clearInterval(waveInterval);
+            resChart.data.datasets[0].borderColor = 'rgba(255, 255, 255, 0.05)';
+            resChart.data.datasets[0].data = Array(60).fill(0);
+            resChart.update();
+            isEmittingWave = false;
+        }
+    </script>
+</body>
+</html>

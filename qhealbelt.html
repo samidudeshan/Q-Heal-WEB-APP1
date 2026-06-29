@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Belt | Q-Heal Official Store</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #060a13;
+            --bg-card: rgba(13, 21, 39, 0.85);
+            --primary: #1e40af;
+            --accent: #00f2fe;
+            --text-main: #f7fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --border-color: rgba(0, 242, 254, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; overflow-x: hidden; }
+        
+        /* Background Gradient Effect */
+        .bg-glow { position: fixed; top: -50%; left: -20%; width: 100vw; height: 100vh; z-index: -1; background: radial-gradient(circle, rgba(0, 242, 254, 0.08) 0%, transparent 70%); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
+        
+        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 40px; }
+        .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #3b82f6, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1.5px; }
+
+        /* Store Layout Matrix */
+        .store-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-top: 20px; }
+        @media (max-width: 900px) { .store-grid { grid-template-columns: 1fr; gap: 30px; } }
+
+        /* --- LEFT COLUMN: IMAGE GALLERY --- */
+        .gallery-container { display: flex; flex-direction: column; gap: 15px; }
+        .main-image-box { width: 100%; height: 420px; background: rgba(255,255,255,0.02); border: 2px dashed rgba(0, 242, 254, 0.2); border-radius: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; }
+        .main-image-box:hover { border-color: var(--accent); background: rgba(0, 242, 254, 0.03); }
+        .main-image-box img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; display: block; }
+        
+        .thumb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .thumb-box { height: 100px; background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 11px; color: var(--text-muted); cursor: pointer; transition: 0.2s; overflow: hidden; position: relative; }
+        .thumb-box:hover { border-color: var(--accent); color: var(--accent); }
+        .thumb-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .thumb-box span { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.35); padding: 8px; text-align: center; }
+
+        /* --- RIGHT COLUMN: PRODUCT INFO & CHECKOUT --- */
+        .product-details { display: flex; flex-direction: column; }
+        .tag { background: rgba(0, 242, 254, 0.1); border: 1px solid rgba(0, 242, 254, 0.2); color: var(--accent); padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; width: fit-content; margin-bottom: 15px; text-transform: uppercase; }
+        .product-title { font-size: 36px; font-weight: 800; margin-bottom: 10px; line-height: 1.2; }
+        .price-tag { font-size: 32px; font-weight: 700; color: #fff; margin-bottom: 20px; }
+        .price-tag span { font-size: 16px; color: var(--text-muted); text-decoration: line-through; margin-left: 10px; font-weight: 400; }
+        .desc { color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 30px; }
+
+        /* --- EXPANDED PAYMENT CORE --- */
+        .checkout-box { background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .checkout-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .pay-methods { display: flex; background: #111827; padding: 4px; border-radius: 12px; margin-bottom: 20px; }
+        .pay-tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 10px; transition: 0.2s; }
+        .pay-tab.active { background: rgba(0, 242, 254, 0.15); color: var(--accent); border: 1px solid rgba(0, 242, 254, 0.2); }
+        
+        .pay-panel { display: none; }
+        .pay-panel.active { display: block; }
+
+        /* Forms */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+        .form-input { width: 100%; padding: 12px; background: rgba(5, 8, 16, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; font-size: 14px; }
+        .form-input:focus { border-color: var(--accent); outline: none; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        /* Dropzone Box */
+        .slip-zone { border: 2px dashed rgba(0, 242, 254, 0.3); border-radius: 14px; padding: 25px; text-align: center; background: rgba(0,0,0,0.2); cursor: pointer; transition: 0.2s; }
+        .slip-zone:hover { border-color: var(--accent); background: rgba(0, 242, 254, 0.02); }
+
+        .buy-btn { width: 100%; background: linear-gradient(135deg, #2563eb, var(--accent)); color: white; border: none; padding: 15px; font-size: 15px; font-weight: 700; border-radius: 12px; cursor: pointer; margin-top: 15px; box-shadow: 0 4px 20px rgba(0,242,254,0.2); transition: 0.2s; }
+        .buy-btn:hover { transform: translateY(-2px); }
+        .home-btn {
+            display: inline-block;
+            padding: 0.7rem 1rem;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.25);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">Q-HEAL HARDWARE</div>
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <a href="index.html" class="home-btn">🏠 Home</a>
+                <div style="font-size:12px; color:var(--text-muted); font-weight:600;">Sinhala / English Secure Checkout</div>
+            </div>
+        </header>
+
+        <div class="store-grid">
+            
+            <div class="gallery-container">
+                <div class="main-image-box">
+                    <img id="mainImgDisplay" src="1782718561374.1782718524429.png" alt="Quantum Belt View">
+                </div>
+                
+                <div class="thumb-grid">
+                    <div class="thumb-box">
+                        <img src="1782718907337.png" alt="Angle 2">
+                        <span>Angle 2</span>
+                    </div>
+                    <div class="thumb-box">
+                        <img src="1782719220887.1782719190663.png" alt="Circuit Module">
+                        <span>Circuit Module</span>
+                    </div>
+                    <div class="thumb-box">
+                        <img src="1782718561374.1782718524429.png" alt="Angle 1">
+                        <span>Angle 1</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-details">
+                <div class="tag">Hardware Innovation</div>
+                <h1 class="product-title">Somatic Frequency Generator Belt</h1>
+                <div class="price-tag">LKR 4,500 <span>LKR 5,500</span></div>
+                <p class="desc">
+                    This advanced bio-resonant hardware layout integrates flawlessly with the Q-Heal diagnostic framework. Engineered to output precise acoustic wave configurations and micro-vibrations via an embedded ESP32 core module to stabilize severe exam stress and anxiety metrics instantly.
+                </p>
+
+                <div class="checkout-box">
+                    <div class="checkout-title">Secure Payment Terminal</div>
+                    
+                    <div class="pay-methods">
+                        <div class="pay-tab active" id="btnCard" onclick="togglePayMethod('card')">💳 Card Payment</div>
+                        <div class="pay-tab" id="btnSlip" onclick="togglePayMethod('slip')">📂 Bank Slip Upload</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Delivery Address (බෙල්ට් එක එවිය යුතු ලිපිනය)</label>
+                        <input type="text" class="form-input" placeholder="No. 45, Galle Road, Colombo" id="userAddress">
+                    </div>
+
+                    <div id="panelCard" class="pay-panel active">
+                        <div class="form-group">
+                            <label>Cardholder Name</label>
+                            <input type="text" class="form-input" placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label>Card Number</label>
+                            <input type="text" class="form-input" placeholder="4524 •••• •••• 1234">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Expiry</label>
+                                <input type="text" class="form-input" placeholder="MM/YY">
+                            </div>
+                            <div class="form-group">
+                                <label>CVC</label>
+                                <input type="password" class="form-input" placeholder="•••">
+                            </div>
+                        </div>
+                        <button class="buy-btn" onclick="executePurchase('Card')">Authorize & Place Order</button>
+                    </div>
+
+                    <div id="panelSlip" class="pay-panel">
+                        <div style="background:rgba(255,255,255,0.02); padding:15px; border-radius:10px; margin-bottom:15px; font-size:12px; border:1px solid rgba(255,255,255,0.05);">
+                            <strong style="color:var(--accent);">Bank Details:</strong><br>
+                            Bank: Boc / People's Bank / Sampath<br>
+                            Account Name: Q-Heal Innovations<br>
+                            Account Number: 1234-5678-9012
+                        </div>
+                        <div class="slip-zone" onclick="document.getElementById('slipImgFile').click()">
+                            <span id="slipText">📂 Click to Upload Bank Deposit Slip Receipt</span>
+                            <input type="file" id="slipImgFile" style="display:none;" accept="image/*" onchange="handleSlipSelected()">
+                        </div>
+                        <button class="buy-btn" style="background:var(--primary);" onclick="executePurchase('Bank Slip')">Submit Slip & Confirm Order</button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- INTERACTIVE LAYOUT FUNCTIONS ---
+        function togglePayMethod(type) {
+            document.getElementById('btnCard').classList.toggle('active', type === 'card');
+            document.getElementById('btnSlip').classList.toggle('active', type === 'slip');
+            document.getElementById('panelCard').classList.toggle('active', type === 'card');
+            document.getElementById('panelSlip').classList.toggle('active', type === 'slip');
+        }
+
+        // Handle Main Image Input View Setup
+        function previewImage(input, targetId, textId) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById(targetId);
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    document.getElementById(textId).style.display = 'none';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Preview Thumb text change
+        function previewThumb(input, textId) {
+            if (input.files && input.files[0]) {
+                document.getElementById(textId).textContent = "📸 Loaded";
+                document.getElementById(textId).style.color = "#10b981";
+            }
+        }
+
+        function handleSlipSelected() {
+            document.getElementById('slipText').innerHTML = "✅ **Slip Added Successfully!**<br><span style='color:#10b981; font-size:12px;'>Order ready to lock.</span>";
+        }
+
+        function executePurchase(method) {
+            const address = document.getElementById('userAddress').value.trim();
+            if(!address) {
+                alert('Please enter a delivery address first! (කරුණාකර බෙල්ට් එක එවිය යුතු ලිපිනය ඇතුළත් කරන්න)');
+                return;
+            }
+            alert(`Order Placed Successfully via ${method}! Your Frequency Belt will be dispatched to: ${address}`);
+        }
+
+        // GSAP entry effect Animation
+        gsap.from(".store-grid", { opacity: 0, y: 30, duration: 0.6, ease: "power2.out" });
+    </script>
+</body>
+</html>

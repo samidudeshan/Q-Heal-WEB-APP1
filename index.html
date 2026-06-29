@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q-Heal | Quantum Frequency & Mental Coherence Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-dark: #060a13;
+            --bg-card: rgba(13, 21, 39, 0.85);
+            --primary: #1e40af;
+            --accent: #00f2fe;
+            --text-main: #f7fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --border-color: rgba(0, 242, 254, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; min-height: 100vh; position: relative; }
+        #bgCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; background: radial-gradient(circle at center, #0c1938 0%, #060a13 100%); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+        .screen { display: none; opacity: 0; }
+        .screen.active { display: block; opacity: 1; }
+
+        /* --- HEADER & NAV BAR --- */
+        header { display: flex; justify-content: space-between; align-items: center; padding: 25px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 40px; }
+        .logo { font-size: 26px; font-weight: 800; background: linear-gradient(135deg, #3b82f6, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1.5px; cursor: pointer; }
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-item { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: color 0.2s; padding: 8px 16px; border-radius: 20px; }
+        .nav-item:hover, .nav-item.active-link { color: var(--text-main); }
+        .nav-item.pro-btn { background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.3); color: var(--accent); box-shadow: 0 0 15px rgba(0, 242, 254, 0.1); }
+        .badge { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--success); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        
+        .btn { background: linear-gradient(135deg, #2563eb, var(--accent)); color: white; border: none; padding: 16px 40px; font-size: 16px; font-weight: 700; border-radius: 30px; cursor: pointer; box-shadow: 0 4px 20px rgba(0, 242, 254, 0.25); transition: transform 0.2s; }
+        .btn:hover { transform: scale(1.02); }
+
+        /* --- SCREEN 1: HOME --- */
+        .hero { text-align: center; padding: 60px 0; }
+        .hero h1 { font-size: 48px; margin-bottom: 20px; font-weight: 800; }
+        .hero h1 span { background: linear-gradient(135deg, #3b82f6, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { color: var(--text-muted); font-size: 18px; max-width: 650px; margin: 0 auto 40px auto; }
+
+        /* --- SCREEN 2: DIAGNOSTIC WORKSPACE --- */
+        .quiz-card { max-width: 680px; margin: 40px auto; background: var(--bg-card); backdrop-filter: blur(10px); padding: 45px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .quiz-progress { height: 6px; background: #1e293b; border-radius: 3px; margin-bottom: 35px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.3s ease; }
+        
+        /* Fixed Emoji Grid Layout */
+        .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 30px; }
+        .emoji-btn { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px 10px; cursor: pointer; text-align: center; transition: all 0.2s ease-in-out; opacity: 1 !important; visibility: visible !important; }
+        .emoji-btn:hover { background: rgba(0, 242, 254, 0.1); border-color: var(--accent); transform: translateY(-3px); }
+        .emoji-btn span { font-size: 36px; display: block; margin-bottom: 10px; pointer-events: none; }
+        .emoji-btn p { font-size: 12px; color: var(--text-muted); font-weight: 600; pointer-events: none; }
+
+        /* --- SCREEN 3: HEALING WORKSPACE HUB --- */
+        .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        @media (max-width: 900px) { .hub-grid { grid-template-columns: 1fr; } }
+        .mode-selector { display: flex; background: #111827; padding: 6px; border-radius: 30px; margin-bottom: 25px; grid-column: 1 / -1; }
+        .mode-tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; border-radius: 25px; font-size: 14px; font-weight: 600; color: var(--text-muted); }
+        .mode-tab.active { background: linear-gradient(135deg, #2563eb, var(--accent)); color: white; }
+        .display-panel { background: rgba(13, 21, 39, 0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 30px; min-height: 320px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .hub-controls { background: var(--bg-card); padding: 35px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .timer { font-size: 54px; font-weight: 800; font-family: monospace; margin-bottom: 15px; }
+        .action-btn { background: var(--success); color: white; border: none; padding: 16px; border-radius: 14px; font-weight: 700; cursor: pointer; width: 100%; }
+        .breath-ring { width: 150px; height: 150px; border-radius: 50%; border: 3px solid var(--accent); display: none; align-items: center; justify-content: center; font-weight: 700; transition: transform 4s ease-in-out; }
+
+        /* --- SCREEN 4: GATEWAY & PAYMENT --- */
+        .gateway-card { max-width: 650px; margin: 30px auto; background: linear-gradient(145deg, rgba(13, 21, 39, 0.95), rgba(6, 10, 19, 0.95)); border: 1px solid rgba(0, 242, 254, 0.3); border-radius: 28px; padding: 45px 35px; text-align: center; box-shadow: 0 15px 45px rgba(0, 242, 254, 0.15); }
+        .pro-price { font-size: 44px; font-weight: 800; color: var(--text-main); margin: 15px 0 5px 0; }
+        .pro-price span { font-size: 16px; color: var(--text-muted); font-weight: 400; }
+        
+        .feature-list { text-align: left; margin: 20px auto; max-width: 480px; list-style: none; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.04); }
+        .feature-list li { font-size: 13px; margin-bottom: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 12px; }
+        .feature-list li::before { content: "⚡"; color: var(--accent); font-weight: bold; }
+        .feature-list li strong { color: var(--text-main); }
+
+        /* Payment Tabs & Forms */
+        .payment-methods { display: flex; background: #111827; padding: 4px; border-radius: 12px; margin: 20px 0; }
+        .pay-tab { flex: 1; padding: 10px; cursor: pointer; border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-align: center; transition: all 0.2s; }
+        .pay-tab.active { background: rgba(0, 242, 254, 0.15); color: var(--accent); border: 1px solid rgba(0, 242, 254, 0.2); }
+        
+        .payment-panel { display: none; }
+        .payment-panel.active { display: block; }
+
+        .slip-dropzone { border: 2px dashed rgba(0, 242, 254, 0.4); border-radius: 16px; padding: 25px; background: rgba(0,0,0,0.3); cursor: pointer; transition: all 0.2s; }
+        .slip-dropzone:hover { border-color: var(--accent); background: rgba(0, 242, 254, 0.05); }
+
+        .card-form { text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; letter-spacing: 0.5px; }
+        .form-input { width: 100%; padding: 12px; background: rgba(5, 8, 16, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; font-size: 14px; font-weight: 600; transition: border-color 0.2s; }
+        .form-input:focus { border-color: var(--accent); outline: none; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        /* --- 💎 SCREEN 5: QUANTUM PRO DASHBOARD --- */
+        .pro-layout { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 25px; }
+        @media (max-width: 900px) { .pro-layout { grid-template-columns: 1fr; } }
+        .pro-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 25px; border-radius: 20px; margin-bottom: 20px; position: relative; backdrop-filter: blur(10px); }
+        
+        .hw-panel { background: rgba(5, 8, 16, 0.95); border: 1px solid var(--border-color); padding: 20px; border-radius: 16px; box-shadow: 0 0 25px rgba(0, 242, 254, 0.05); }
+        .hw-grid-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .metric-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; }
+        .metric-val { font-family: monospace; font-size: 18px; color: var(--accent); font-weight: 700; }
+
+        .tool-btn { background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.3); color: white; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 10px; transition: all 0.2s; }
+        .tool-btn:hover { background: rgba(0, 242, 254, 0.2); border-color: var(--accent); }
+        
+        .video-wrap { position: relative; width: 140px; height: 140px; margin: 15px auto 0 auto; display: none; }
+        video { width: 140px; height: 140px; object-fit: cover; border-radius: 50%; border: 3px solid var(--accent); }
+        .scan-overlay { position: absolute; top:0; left:0; width:100%; height:100%; border-radius:50%; box-shadow: inset 0 0 20px rgba(0,242,254,0.6); animation: pulse 1.5s infinite alternate; pointer-events: none; }
+        @keyframes pulse { from { opacity: 0.3; } to { opacity: 0.9; } }
+
+        canvas#hiddenCanvas { display: none; }
+    </style>
+</head>
+<body>
+
+    <canvas id="bgCanvas"></canvas>
+    <canvas id="hiddenCanvas" width="100" height="100"></canvas>
+
+    <div class="container">
+        <header id="appHeader">
+            <div class="logo" onclick="navigateTo('screenHome')">Q-HEAL</div>
+            <nav class="nav-links">
+                <span class="nav-item active-link" id="linkHome" onclick="navigateTo('screenHome')">Home</span>
+                <span class="nav-item" id="linkQuiz" onclick="navigateTo(')">Workspace Matrix</span>
+                <span class="nav-item pro-btn" onclick="handleProAccess()">💎 Quantum Pro Dashboard</span>
+                <div class="badge" id="appBadge">Standard Core</div>
+            </nav>
+        </header>
+
+        <!-- SCREEN 1: HOME -->
+        <div id="screenHome" class="screen active">
+            <div class="hero">
+                <h1 class="gsap-tilt">Quantum Frequency & <br><span>Somatic Coherence Engine</span></h1>
+                <p class="gsap-fade">An innovative algorithmic framework optimizing student mental endurance via localized acoustic sound geometries and synchronous tactile pacing filters.</p>
+                <div style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap;" class="gsap-fade">
+                    <button class="btn" onclick="window.location.href='sa.html'">Launch Workspace Core</button>
+                    <button class="btn" style="background:transparent; border:1px solid var(--accent); box-shadow:none;" onclick="handleProAccess()">Explore Pro Features</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: DIAGNOSTIC WORKSPACE -->
+        <div id="screenQuiz" class="screen">
+            <div class="quiz-card">
+                <div style="font-size: 11px; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 5px;">Biometric Diagnostic Calibration</div>
+                <div class="quiz-progress"><div class="progress-fill" id="quizProgressFill"></div></div>
+                <div id="quizContent"></div>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: HEALING WORKSPACE HUB -->
+        <div id="screenHub" class="screen">
+            <div class="hub-grid">
+                <div class="mode-selector">
+                    <div class="mode-tab active" id="tabVibe" onclick="switchTherapyMode('vibe')">Acoustic & Vibration Waves</div>
+                    <div class="mode-tab" id="tabBreath" onclick="switchTherapyMode('breath')">Somatic Breathing Guide</div>
+                </div>
+                <div class="display-panel">
+                    <canvas id="waveCanvas" style="width: 100%; height: 220px;"></canvas>
+                    <div class="breath-ring" id="breathRing">Inhale</div>
+                </div>
+                <div class="hub-controls">
+                    <div class="timer" id="timerDisplay">15:00</div>
+                    <p style="color:var(--text-muted); font-size:14px; margin-bottom:25px;" id="matrixStatus">Calibrating matrix modules...</p>
+                    <button class="action-btn" id="sessionCtrlBtn" onclick="toggleSession()">Start Core Node</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: GATEWAY WITH CARD PAYMENTS -->
+        <div id="screenGateway" class="screen">
+            <div class="gateway-card">
+                <div style="font-size:12px; text-transform:uppercase; color:var(--accent); font-weight:700; letter-spacing:1px;">Premium Enterprise Activation</div>
+                <h2 style="font-size:28px; font-weight:800; margin-top:5px;">Unlock Quantum Pro Dashboard</h2>
+                <p style="color: var(--text-muted); font-size:14px; max-width:480px; margin: 5px auto 0 auto;">Upgrade to the ultimate deployment matrix designed for advanced telemetry analytics.</p>
+                
+                <div class="pro-price">LKR 1,500 <span style="font-size:15px;">/ lifetime pass</span></div>
+                
+                <ul class="feature-list">
+                    <li><strong>Live Bio-PPG Engine:</strong> Optical pulse scan analytics via camera node.</li>
+                    <li><strong>Bi-directional Telemetry Node:</strong> Live ESP32 and NRF24L01 RF signal tracking.</li>
+                    <li><strong>Deep Rest Theta Inductor:</strong> High-precision 5.5Hz balancing framework.</li>
+                    <li><strong>Raw Frequency Sound Export:</strong> Pass live analog signals directly to modules.</li>
+                </ul>
+
+                <div class="payment-methods">
+                    <div class="pay-tab active" id="tabCard" onclick="switchPaymentMethod('card')">💳 Credit / Debit Card</div>
+                    <div class="pay-tab" id="tabSlip" onclick="switchPaymentMethod('slip')">📂 Bank Slip Upload</div>
+                </div>
+
+                <!-- Card Payment Form Panel -->
+                <div id="panelCard" class="payment-panel active">
+                    <div class="card-form">
+                        <div class="form-group">
+                            <label>Cardholder Name</label>
+                            <input type="text" class="form-input" placeholder="John Doe" id="cardName">
+                        </div>
+                        <div class="form-group">
+                            <label>Card Number</label>
+                            <input type="text" class="form-input" placeholder="4524 •••• •••• 1234" id="cardNumber" maxlength="19">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Expiry Date</label>
+                                <input type="text" class="form-input" placeholder="MM/YY" id="cardExpiry" maxlength="5">
+                            </div>
+                            <div class="form-group">
+                                <label>CVC / CVV</label>
+                                <input type="password" class="form-input" placeholder="•••" id="cardCvc" maxlength="3">
+                            </div>
+                        </div>
+                        <button class="tool-btn" style="background:var(--accent); color:var(--bg-dark); border:none; padding:14px; font-weight:700;" onclick="processCardPayment()">🔒 Pay & Activate Pass</button>
+                    </div>
+                </div>
+
+                <!-- Bank Slip Panel -->
+                <div id="panelSlip" class="payment-panel">
+                    <div class="slip-dropzone" onclick="document.getElementById('slipInput').click()">
+                        <span id="slipStatusText">📂 Drag & Drop or Click to Upload Bank Payment Slip</span>
+                        <input type="file" id="slipInput" style="display:none;" accept="image/*" onchange="simulateSlipVerification()">
+                        <div class="quiz-progress" id="slipProgContainer" style="display:none; margin-top:15px; height:4px;"><div class="progress-fill" id="slipProgFill" style="width:0%"></div></div>
+                    </div>
+                </div>
+
+                <div style="margin:25px 0 10px 0; font-size:11px; color:var(--text-muted); letter-spacing:2px;">OR ENTER DIRECT ACTIVATION KEY</div>
+                <input type="text" id="activationKey" style="width:100%; padding:14px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:white; text-align:center; font-weight:700; margin-bottom:12px;" placeholder="QHEAL-PRO-XXXX" value="QHEAL-PRO-2026">
+                <button class="tool-btn" style="background:var(--primary); border:none; padding:14px;" onclick="verifyHardwareKey()">Verify Security Code</button>
+                <p style="font-size:13px; color:var(--text-muted); margin-top:20px; cursor:pointer;" onclick="navigateTo('screenHome')">← Return to Core Node</p>
+            </div>
+        </div>
+
+       
+        
+
+    <script>
+         const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particles = [];
+
+        function resizeBg() { bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeBg);
+        resizeBg();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * bgCanvas.width;
+                this.y = Math.random() * bgCanvas.height;
+                this.size = Math.random() * 2.5 + 0.5;
+                this.speedX = Math.random() * 0.4 - 0.2;
+                this.speedY = Math.random() * 0.4 - 0.2;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.x += this.speedX; this.y += this.speedY;
+                if (this.x > bgCanvas.width) this.x = 0; if (this.x < 0) this.x = bgCanvas.width;
+                if (this.y > bgCanvas.height) this.y = 0; if (this.y < 0) this.y = bgCanvas.height;
+            }
+            draw() {
+                bgCtx.fillStyle = `rgba(0, 242, 254, ${this.opacity})`;
+                bgCtx.beginPath(); bgCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2); bgCtx.fill();
+            }
+        }
+        for (let i = 0; i < 65; i++) { particles.push(new Particle()); }
+
+        function animateBackground() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            let gradient = bgCtx.createRadialGradient(bgCanvas.width/2, bgCanvas.height/2, 10, bgCanvas.width/2, bgCanvas.height/2, bgCanvas.width);
+            gradient.addColorStop(0, '#0a142c'); gradient.addColorStop(1, '#050811');
+            bgCtx.fillStyle = gradient; bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateBackground);
+        }
+        animateBackground();
+
+        // --- GSAP PAGE TRANSITIONS ---
+        function runGsapTransition(targetScreen) {
+            gsap.fromTo(`#${targetScreen}`, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" });
+        }
+
+         const diagnosticQuestions = [
+            { text: "How heavy is your academic burnout or mental exhaustion right now? (දැන් දැනෙන මානසික විඩාව)", metrics: "fatigue" },
+            { text: "Rate the ambient/environmental noise around you. (වටපිටාවේ ඇති ශබ්ද බාධා ප්‍රමාණය)", metrics: "noise" },
+            { text: "How tense or physically restless is your body? (ශරීරයට දැනෙන ගැස්ම/නොසන්සුන්කම)", metrics: "anxiety" },
+            { text: "Are you struggling to maintain active attention on study tasks? (පාඩම් වැඩ වලට අවධානය යොමු කිරීමේ අපහසුතාවය)", metrics: "focus" },
+            { text: "Rate your overall situational exam-related stress level. (විභාග පීඩනය නිසා ඇති වී තිබෙන ආතතිය)", metrics: "stress" }
+        ];
+
+        let currentQuestionIdx = 0;
+        let diagnosticOutputs = { fatigue: 3, noise: 3, anxiety: 3, focus: 3, stress: 3 };
+
+        function loadQuestion() {
+            if (currentQuestionIdx >= diagnosticQuestions.length) { processTherapyMatrix(); return; }
+            const progressPercent = ((currentQuestionIdx + 1) / diagnosticQuestions.length) * 100;
+            document.getElementById('quizProgressFill').style.width = `${progressPercent}%`;
+            const currentQ = diagnosticQuestions[currentQuestionIdx];
+            let html = `
+                <div class="q-title">Question ${currentQuestionIdx + 1} of 5: <br>${currentQ.text}</div>
+                <div class="emoji-grid">
+                    <div class="emoji-btn" onclick="submitAnswer('${currentQ.metrics}', 2)"><span>😊</span><p>Excellent</p></div>
+                    <div class="emoji-btn" onclick="submitAnswer('${currentQ.metrics}', 4)"><span>🙂</span><p>Mild</p></div>
+                    <div class="emoji-btn" onclick="submitAnswer('${currentQ.metrics}', 6)"><span>😐</span><p>Moderate</p></div>
+                    <div class="emoji-btn" onclick="submitAnswer('${currentQ.metrics}', 8)"><span>🙁</span><p>High</p></div>
+                    <div class="emoji-btn" onclick="submitAnswer('${currentQ.metrics}', 10)"><span>😫</span><p>Severe</p></div>
+                </div>
+            `;
+            document.getElementById('quizContent').innerHTML = html;
+        }
+
+
+
+
+
+
+ function submitAnswer(metricType, evaluationWeight) {
+            diagnosticOutputs[metricType] = evaluationWeight;
+            currentQuestionIdx++; loadQuestion();
+        }
+
+        // --- 3. CORE MANAGEMENT ROUTER NODE ---
+
+        function navigateTo(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if (screenId === 'screenQuiz') { currentQuestionIdx = 0; loadQuestion(); }
+            if (screenId === 'screenHub') { initCanvasWaveform(); initBreathingEngine(true); } 
+            else { haltActiveSession(); initBreathingEngine(false); }
+        }
+
+        function processTherapyMatrix() {
+            let configurationTraceText = `Matrix Calculations Resolved. Pure 528Hz Quantum Base Engine Online. `;
+            if(diagnosticOutputs.noise > 5) configurationTraceText += `+ Anti-Chaos Pink Noise Layer deployed. `;
+            if(diagnosticOutputs.fatigue > 5 || diagnosticOutputs.stress > 5) configurationTraceText += `+ Grounding low-frequency pacing active.`;
+            document.getElementById('matrixStatus').innerText = configurationTraceText;
+            navigateTo('screenHub');
+        }
+
+        function switchTherapyMode(mode) {
+            selectedTherapyMode = mode;
+            document.getElementById('tabVibe').classList.toggle('active', mode === 'vibe');
+            document.getElementById('tabBreath').classList.toggle('active', mode === 'breath');
+            document.getElementById('waveCanvas').style.display = (mode === 'vibe') ? 'block' : 'none';
+            document.getElementById('breathRing').style.display = (mode === 'breath') ? 'flex' : 'none';
+        }
+
+        // --- 4. HARDWARE PRO UNLOCK ENGINE (Cyan Theme Match) ---
+       
+
+        // --- 5. AUDIO hardware INTENSITY & PULSING STRUCTURES ---
+        let audioContextInstance = null, internalOscNode = null, internalGainNode = null, pinkNoiseNode = null;
+        let isSessionExecuting = false, globalTimerId = null, hapticLoopId = null, timeRemaining = 900;
+        let selectedTherapyMode = 'vibe';
+
+        function toggleSession() {
+            const buttonElement = document.getElementById('sessionCtrlBtn');
+            if (!isSessionExecuting) {
+                initiateAudioHardware();
+                buttonElement.innerText = "Pause Active Session";
+                buttonElement.className = "action-btn paused";
+                isSessionExecuting = true;
+                startCountdownClock();
+                startHapticVibrationEngine();
+            } else { haltActiveSession(); }
+        }
+
+        function initiateAudioHardware() {
+            if (!audioContextInstance) { audioContextInstance = new (window.AudioContext || window.webkitAudioContext)(); }
+            internalGainNode = audioContextInstance.createGain();
+            internalGainNode.gain.setValueAtTime(0.4, audioContextInstance.currentTime);
+
+            internalOscNode = audioContextInstance.createOscillator();
+            internalOscNode.type = 'sine';
+            internalOscNode.frequency.setValueAtTime(528, audioContextInstance.currentTime);
+            internalOscNode.connect(internalGainNode);
+
+            if (diagnosticOutputs.noise > 5) {
+                pinkNoiseNode = createPinkNoiseBuffer(audioContextInstance);
+                if (pinkNoiseNode) {
+                    let noiseGain = audioContextInstance.createGain();
+                    noiseGain.gain.setValueAtTime(0.12, audioContextInstance.currentTime);
+                    pinkNoiseNode.connect(noiseGain); noiseGain.connect(internalGainNode);
+                }
+            }
+            internalGainNode.connect(audioContextInstance.destination);
+            internalOscNode.start();
+        }
+
+        function startHapticVibrationEngine() {
+            clearInterval(hapticLoopId);
+            if (!isSessionExecuting || selectedTherapyMode !== 'vibe') return;
+            function vibratePulse() {
+                if (navigator.vibrate && selectedTherapyMode === 'vibe' && isSessionExecuting) {
+                    navigator.vibrate([250, 150, 250, 200]); 
+                }
+            }
+            vibratePulse(); hapticLoopId = setInterval(vibratePulse, 1200);
+        }
+
+        function triggerProWave(hz, typeName) {
+            if(!isProUnlocked) return;
+            haltActiveSession();
+            document.getElementById('sessionCtrlBtn').innerText = "Pause Active Session";
+            document.getElementById('sessionCtrlBtn').className = "action-btn paused";
+            isSessionExecuting = true;
+            startCountdownClock();
+
+            audioContextInstance = new (window.AudioContext || window.webkitAudioContext)();
+            internalGainNode = audioContextInstance.createGain();
+            internalGainNode.gain.setValueAtTime(0.5, audioContextInstance.currentTime);
+
+            internalOscNode = audioContextInstance.createOscillator();
+            internalOscNode.type = 'sine';
+            internalOscNode.frequency.setValueAtTime(hz, audioContextInstance.currentTime);
+            
+            internalOscNode.connect(internalGainNode).connect(audioContextInstance.destination);
+            internalOscNode.start();
+            document.getElementById('matrixStatus').innerText = `🎯 Broadcasting Premium Wave: ${hz}Hz [${typeName}] active.`;
+        }
+
+        function haltActiveSession() {
+            const buttonElement = document.getElementById('sessionCtrlBtn');
+            clearInterval(hapticLoopId);
+            if (internalOscNode) { try { internalOscNode.stop(); } catch(e){} internalOscNode.disconnect(); internalOscNode = null; }
+            if (pinkNoiseNode) { try { pinkNoiseNode.stop(); } catch(e){} pinkNoiseNode.disconnect(); pinkNoiseNode = null; }
+            clearInterval(globalTimerId);
+            isSessionExecuting = false;
+            if(buttonElement) { buttonElement.innerText = "Start Therapy Session"; buttonElement.className = "action-btn"; }
+            if(navigator.vibrate) navigator.vibrate(0);
+        }
+
+        function createPinkNoiseBuffer(ctx) {
+            let bufferSize = 2 * ctx.sampleRate, noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate), output = noiseBuffer.getChannelData(0);
+            let b0, b1, b2, b3, b4, b5, b6; b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
+            for (let i = 0; i < bufferSize; i++) {
+                let white = Math.random() * 2 - 1;
+                b0 = 0.99886 * b0 + white * 0.0555179; b1 = 0.99332 * b1 + white * 0.0750759; b2 = 0.96900 * b2 + white * 0.1538520;
+                b3 = 0.86650 * b3 + white * 0.3104856; b4 = 0.55000 * b4 + white * 0.5329522; b5 = -0.7616 * b5 - white * 0.0168980;
+                output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362; output[i] *= 0.11; b6 = white * 0.115926;
+            }
+            let pinkSource = ctx.createBufferSource(); pinkSource.buffer = noiseBuffer; pinkSource.loop = true; pinkSource.start(0); return pinkSource;
+        }
+
+        // --- 6. BREATHING ENGINEERING SYSTEM ---
+        let breathIntervalId = null;
+        function initBreathingEngine(start) {
+            const ring = document.getElementById('breathRing');
+            clearInterval(breathIntervalId);
+            if (!start) return;
+            function cycle() {
+                if (selectedTherapyMode === 'breath') {
+                    ring.innerText = "Inhale (හුස්ම ගන්න)"; ring.className = "breath-ring expanding";
+                    if(isSessionExecuting && navigator.vibrate) navigator.vibrate(200);
+                }
+                setTimeout(() => {
+                    if (selectedTherapyMode === 'breath') {
+                        ring.innerText = "Exhale (හුස්ම පිට කරන්න)"; ring.className = "breath-ring shrinking";
+                        if(isSessionExecuting && navigator.vibrate) navigator.vibrate(100);
+                    }
+                }, 4000);
+            }
+            cycle(); breathIntervalId = setInterval(cycle, 8000);
+        }
+
+        function startCountdownClock() {
+            clearInterval(globalTimerId);
+            globalTimerId = setInterval(() => {
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                    let mins = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+                    let secs = (timeRemaining % 60).toString().padStart(2, '0');
+                    document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+                } else { haltActiveSession(); }
+            }, 1000);
+        }
+
+        // --- 7. CAMERA BIO-PPG PULSE SCANNING ---
+        let localStream = null, scanInterval = null, checkFingerInterval = null;
+        
+        async function executeBioPPGScan() {
+            if(!isProUnlocked) return;
+            const video = document.getElementById('webcam'); const box = document.getElementById('cameraBox');
+            const progress = document.getElementById('scanProgress'); const result = document.getElementById('scanResult');
+            const canvas = document.getElementById('hiddenCanvas'); const ctx = canvas.getContext('2d');
+            
+            result.innerText = ""; box.style.display = "block"; progress.innerText = "Initializing Biosensors...";
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+                video.srcObject = localStream; video.classList.add('scanning-pulse');
+                progress.innerText = "Place fingertip over camera lens...";
+
+                let timeTarget = 8;
+                checkFingerInterval = setInterval(() => {
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const data = imgData.data;
+                        let r = 0, g = 0, b = 0;
+                        for (let i = 0; i < data.length; i += 4) { r += data[i]; g += data[i+1]; b += data[i+2]; }
+                        let pCount = data.length / 4;
+                        let avgR = r / pCount, avgG = g / pCount, avgB = b / pCount;
+                        
+                        // Micro-circulatory flux threshold logic
+                        let fingerStable = (avgR > 120 && avgG < 60 && avgB < 60);
+                        if (!fingerStable) {
+                            clearInterval(scanInterval); clearInterval(checkFingerInterval); killCamera();
+                            box.style.display = "none"; haltActiveSession();
+                            result.innerHTML = "<span style='color:var(--danger);'>⚠️ Scan Fault: Contact lost. Hold finger firmly.</span>";
+                        }
+                    }
+                }, 220);
+
+                scanInterval = setInterval(() => {
+                    timeTarget--; progress.innerText = `Analyzing Neural Coherence... (${timeTarget}s)`;
+                    if(timeTarget <= 0) {
+                        clearInterval(scanInterval); clearInterval(checkFingerInterval); killCamera();
+                        box.style.display = "none"; progress.innerText = "Processing Map... ✅";
+                        let simulatedHRV = Math.floor(Math.random() * (85 - 62) + 62);
+                        let optimizedHz = (528 - (simulatedHRV * 0.35)).toFixed(1);
+                        result.innerHTML = `🧬 Bio-Metrics Injected:<br> HRV Score: ${simulatedHRV}ms | Tailored Array: ${optimizedHz} Hz`;
+                        triggerProWave(parseFloat(optimizedHz), "AI Coherence Generated Blend");
+                    }
+                }, 1000);
+
+            } catch (err) { progress.innerText = "⚠️ Access Denied!"; box.style.display = "none"; }
+        }
+        function killCamera() { if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; } }
+
+        // --- 8. CLINICAL TELEMETRY CHART ---
+        function loadProAnalyticsChart() {
+            document.getElementById('analyticsChart').style.display = 'block';
+            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Cortisol Delta (%)',
+                        data: [4, 11, 16, 13, 21, 24, 29],
+                        borderColor: '#00f2fe',
+                        backgroundColor: 'rgba(0, 242, 254, 0.05)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { 
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#94a3b8' } }, 
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } } 
+                    }, 
+                    plugins: { legend: { labels: { color: '#f7fafc', font: { family: 'Poppins' } } } } 
+                }
+            });
+        }
+
+        // --- 9. CANVAS WAVEFORM ---
+        const waveCanvas = document.getElementById('waveCanvas'); const waveCtx = waveCanvas.getContext('2d');
+        let wavePhase = 0;
+        function initCanvasWaveform() {
+            function draw() {
+                waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+                waveCtx.beginPath(); waveCtx.lineWidth = 3;
+                waveCtx.strokeStyle = isSessionExecuting ? '#00f2fe' : '#2563eb';
+                let amp = isSessionExecuting ? 22 : 6; let freq = isSessionExecuting ? 0.032 : 0.015;
+                for (let x = 0; x < waveCanvas.width; x++) {
+                    let y = waveCanvas.height / 2 + Math.sin(x * freq + wavePhase) * amp;
+                    if (x === 0) waveCtx.moveTo(x, y); else waveCtx.lineTo(x, y);
+                }
+                waveCtx.stroke(); wavePhase += isSessionExecuting ? 0.08 : 0.02;
+                requestAnimationFrame(draw);
+            }
+ draw();
+        }
+// --- CORE NAV ROUTER ---
+        let isProUnlocked = false;
+
+        function startWorkspaceCore() {
+            navigateTo('screenQuiz');
+        }
+
+        function navigateTo(screenId) {
+            const targetScreen = document.getElementById(screenId);
+            if (!targetScreen) return;
+
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            targetScreen.classList.add('active');
+
+            const homeLink = document.getElementById('linkHome');
+            const quizLink = document.getElementById('linkQuiz');
+            if (homeLink) homeLink.classList.toggle('active-link', screenId === 'screenHome');
+            if (quizLink) quizLink.classList.toggle('active-link', screenId === 'screenQuiz' || screenId === 'screenHub');
+
+            runGsapTransition(screenId);
+
+            if (screenId === 'screenQuiz') {
+                currentQuestionIdx = 0;
+                loadQuestion();
+            } else if (screenId === 'screenHub') {
+                initCanvasWaveform();
+                initBreathingEngine(true);
+            } else {
+                haltActiveSession();
+                if (screenId !== 'screenProDashboard') initBreathingEngine(false);
+            }
+        }
+
+        function handleProAccess() {
+            if(isProUnlocked) { navigateTo('screenProDashboard'); setTimeout(loadProAnalyticsChart, 100); }
+            else { navigateTo('screenGateway'); }
+        }
+
+        // --- PAYMENT SWITCHER ---
+        function switchPaymentMethod(method) {
+            document.getElementById('tabCard').classList.toggle('active', method === 'card');
+            document.getElementById('tabSlip').classList.toggle('active', method === 'slip');
+            document.getElementById('panelCard').classList.toggle('active', method === 'card');
+            document.getElementById('panelSlip').classList.toggle('active', method === 'slip');
+        }
+
+        // --- CARD PAYMENT SIMULATION ---
+        function processCardPayment() {
+            const name = document.getElementById('cardName').value.trim();
+            const number = document.getElementById('cardNumber').value.trim();
+            const expiry = document.getElementById('cardExpiry').value.trim();
+            const cvc = document.getElementById('cardCvc').value.trim();
+
+            if (!name || !number || !expiry || !cvc) {
+                alert('Please complete all card fields.');
+                return;
+            }
+
+            // Simulate successful payment (fake validation)
+            isProUnlocked = true;
+            const badge = document.getElementById('appBadge');
+            if (badge) badge.textContent = 'Quantum Pro';
+            navigateTo('screenProDashboard');
+            setTimeout(loadProAnalyticsChart, 200);
+        }
+
+        function simulateSlipVerification() {
+            const container = document.getElementById('slipProgContainer');
+            const fill = document.getElementById('slipProgFill');
+            const status = document.getElementById('slipStatusText');
+            if (!container || !fill) return;
+            container.style.display = 'block';
+            fill.style.width = '0%';
+            let w = 0;
+            const t = setInterval(() => {
+                w += 12;
+                if (w > 100) w = 100;
+                fill.style.width = w + '%';
+                if (w >= 100) {
+                    clearInterval(t);
+                    isProUnlocked = true;
+                    if (status) status.textContent = 'Slip verified — Activated';
+                    const badge = document.getElementById('appBadge');
+                    if (badge) badge.textContent = 'Quantum Pro';
+                    navigateTo('screenProDashboard');
+                    setTimeout(loadProAnalyticsChart, 200);
+                }
+            }, 150);
+        }
+
+        function verifyHardwareKey() {
+            const key = (document.getElementById('activationKey') || {}).value || '';
+            if (key.startsWith && key.startsWith('QHEAL-PRO')) {
+                isProUnlocked = true;
+                const badge = document.getElementById('appBadge');
+                if (badge) badge.textContent = 'Quantum Pro';
+                alert('Activation successful');
+                // Redirect to external dashboard page
+                window.location.href = 'dashboard.html';
+            } else {
+                alert('Invalid activation key');
+            }
+        }
+
+        // --- Lightweight stubs for other features to avoid runtime errors ---
+        function loadProAnalyticsChart() {
+            const canvas = document.getElementById('analyticsChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+            try {
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: ['T-4','T-3','T-2','T-1','Now'],
+                        datasets: [{ label: 'Anxiety Index', data: [32,28,26,24,20], borderColor: '#00f2fe', backgroundColor: 'rgba(0,242,254,0.08)', fill: true }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } catch (e) { /* gracefully ignore chart errors */ }
+        }
+
+        function initCanvasWaveform() { /* stub */ }
+        function initBreathingEngine() { /* stub */ }
+        function haltActiveSession() { /* stub */ }
+        function toggleSession() { /* stub */ }
+        function startCameraPPG() { const vWrap = document.getElementById('vWrap'); if (vWrap) vWrap.style.display = 'block'; }
+        function exportAudioFrequencies() { alert('Exporting frequencies (simulated)'); }
+        function fireProFrequency(hz) { const out = document.getElementById('hwOutputHz'); if (out) out.textContent = hz.toFixed(2) + ' Hz'; alert('Injected ' + hz + 'Hz (simulated)'); }
+        function loadQuestion() { /* stub for quiz flow */ }
+
+    </script>
+</body>
+</html>
